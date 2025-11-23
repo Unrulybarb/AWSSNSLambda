@@ -1,49 +1,40 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Newsletter Subscribe</title>
-  <style>
-    body{font-family: Arial, sans-serif; padding: 2rem; max-width:600px; margin:auto}
-    input, button{padding:0.6rem; font-size:1rem}
-    .status{margin-top:1rem}
-  </style>
+    <meta charset="UTF-8">
+    <title>Newsletter Signup</title>
 </head>
 <body>
-  <img src="logo.jpeg" alt="logo" style="max-width:120px; display:block; margin-bottom:1rem" />
-  <h2>Subscribe to newsletter</h2>
-  <input id="email" type="email" placeholder="you@example.com" />
-  <button id="send">Subscribe</button>
-  <div class="status" id="status"></div>
+    <h2>Subscribe to our Newsletter</h2>
+    <form id="subscribeForm">
+        <input type="email" id="email" placeholder="Enter your email" required>
+        <button type="submit">Subscribe</button>
+    </form>
+    <p id="response"></p>
 
-  <script>
-    // After deploying replace API_URL with your API Gateway invoke URL (including /subscribe)
-    const API_URL = "https://REPLACE_WITH_YOUR_API.execute-api.REGION.amazonaws.com/subscribe";
+    <script>
+        const form = document.getElementById('subscribeForm');
+        const responseEl = document.getElementById('response');
 
-    document.getElementById('send').addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim();
-      const status = document.getElementById('status');
-      if (!email) { status.textContent = 'Enter email'; return; }
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
 
-      try {
-        const resp = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ email })
+            try {
+                const res = await fetch('https://6ve928xiqi.execute-api.us-east-1.amazonaws.com/PRUD/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                responseEl.textContent = data.message || data.error;
+            } catch (err) {
+                responseEl.textContent = 'Error sending request';
+            }
         });
-
-        const data = await resp.json().catch(()=>({}));
-        if (resp.ok) {
-          status.textContent = "Subscription requested. Check your email to confirm.";
-        } else {
-          status.textContent = `Error: ${data.message || resp.statusText || 'Unknown error'}`;
-        }
-      } catch (e) {
-        status.textContent = "Network error: " + e.message;
-      }
-    });
-  </script>
+    </script>
+    
 </body>
 </html>
+
+
