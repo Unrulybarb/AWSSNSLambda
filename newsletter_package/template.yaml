@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Simple Newsletter Subscribe App (Lambda + ApiGateway + SNS)
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: python3.11
+    Handler: lambda_function.lambda_handler
+
+Resources:
+
+  NewsletterTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: newsletter-topic
+
+  SubscribeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Runtime: python3.11
+      Handler: lambda_function.lambda_handler
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref NewsletterTopic
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "arn:aws:logs:*:*:*"
+            - Effect: Allow
+              Action:
+                - sns:Subscribe
+                - sns:Publish
+                - sns:ListTopics
+              Resource: "*"
+      Events:
+        SubscribeApi:
+          Type: HttpApi
+          Properties:
+            Path: /subscribe
+            Method: post
+
+Outputs:
+  HttpApiUrl:
+    Description: "HTTP API invoke URL (replace with the full path /subscribe)"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
